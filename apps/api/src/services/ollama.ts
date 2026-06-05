@@ -26,6 +26,7 @@ export async function generateExplanation(userId: string, candidate: Recommendat
     const response = await fetch(`${config.ollamaUrl}/api/generate`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      signal: AbortSignal.timeout(config.ollamaTimeoutMs),
       body: JSON.stringify({
         model: config.ollamaModel,
         prompt,

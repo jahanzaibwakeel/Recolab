@@ -10,6 +10,7 @@ export const config = {
   ollamaUrl: process.env.OLLAMA_URL ?? "http://localhost:11434",
   ollamaModel: process.env.OLLAMA_MODEL ?? "llama3.2",
   ollamaEmbeddingModel: process.env.OLLAMA_EMBEDDING_MODEL ?? "nomic-embed-text",
+  ollamaTimeoutMs: Number(process.env.OLLAMA_TIMEOUT_MS ?? 2500),
   qdrantUrl: process.env.QDRANT_URL ?? "http://localhost:6333",
   qdrantCollection: process.env.QDRANT_COLLECTION ?? "recolab_items",
   embeddingDimensions: Number(process.env.EMBEDDING_DIMENSIONS ?? 128),

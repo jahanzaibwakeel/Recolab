@@ -27,6 +27,7 @@ async function tryOllamaEmbedding(text: string): Promise<number[]> {
     const response = await fetch(`${config.ollamaUrl}/api/embeddings`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
+      signal: AbortSignal.timeout(config.ollamaTimeoutMs),
       body: JSON.stringify({ model: config.ollamaEmbeddingModel, prompt: text })
     });
     if (!response.ok) return [];

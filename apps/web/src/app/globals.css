@@ -23,7 +23,7 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .shell {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 260px minmax(0, 1fr);
+  grid-template-columns: 230px minmax(0, 1fr);
 }
 
 .nav {
@@ -43,9 +43,11 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 }
 
 .nav h1 {
-  font-size: 1.9rem;
+  font-size: clamp(1.35rem, 1.6vw, 1.75rem);
   margin: 4px 0 0;
-  line-height: 1.05;
+  line-height: 1.08;
+  max-width: 12ch;
+  overflow-wrap: anywhere;
 }
 
 .nav-links { display: grid; gap: 8px; }
