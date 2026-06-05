@@ -1,12 +1,15 @@
-import { BarChart3, Boxes, Clock, Home, Search, Settings, UserRound } from "lucide-react";
+import { BarChart3, Boxes, Clock, Home, Search, Settings, Sparkles, UserRound } from "lucide-react";
 import Link from "next/link";
 
 export function Nav() {
   return (
     <aside className="nav">
-      <div>
-        <span className="brand-label">RecoLab</span>
-        <h1>AI Recommendation Engine</h1>
+      <div className="brand-block">
+        <div className="brand-mark"><Sparkles size={18} /></div>
+        <div>
+          <span className="brand-label">RecoLab</span>
+          <h1>AI Recommendation Engine</h1>
+        </div>
       </div>
       <nav className="nav-links">
         <Link href="/"><Home size={17} /> Feed</Link>
