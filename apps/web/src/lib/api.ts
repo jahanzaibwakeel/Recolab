@@ -1,13 +1,18 @@
 import type { CatalogItem, RecommendationAlgorithm, RecommendationResult, UserProfile } from "@recolab/shared";
 import { authHeader, clearSession, getSession, saveSession, type Session } from "./auth";
 
-const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const serverApiUrl = process.env.INTERNAL_API_URL ?? process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+const browserApiUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:4000";
+
+function apiBaseUrl() {
+  return typeof window === "undefined" ? serverApiUrl : browserApiUrl;
+}
 
 export async function api<T>(path: string, init?: RequestInit, retried = false): Promise<T> {
   const headers = new Headers(init?.headers);
   headers.set("Content-Type", "application/json");
   Object.entries(authHeader()).forEach(([key, value]) => headers.set(key, value));
-  const response = await fetch(`${apiUrl}${path}`, {
+  const response = await fetch(`${apiBaseUrl()}${path}`, {
     ...init,
     headers,
     cache: "no-store"
@@ -25,7 +30,7 @@ export async function api<T>(path: string, init?: RequestInit, retried = false):
 async function refreshStoredSession() {
   const session = getSession();
   if (!session?.refreshToken) return false;
-  const response = await fetch(`${apiUrl}/auth/refresh`, {
+  const response = await fetch(`${apiBaseUrl()}/auth/refresh`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ refreshToken: session.refreshToken }),
@@ -89,7 +94,7 @@ export const RecoApi = {
   recommendations: (userId: string, algorithm: RecommendationAlgorithm) => api<RecommendationResult[]>(`/recommendations/${userId}?algorithm=${algorithm}&k=8`),
   recommendationTrace: (userId: string, itemId: string, algorithm: RecommendationAlgorithm) => api<any>(`/recommendations/${userId}/trace/${itemId}?algorithm=${algorithm}&k=20`),
   recommendationTraceExportUrl: (userId: string, itemId: string, algorithm: RecommendationAlgorithm, format: "json" | "html") =>
-    `${apiUrl}/recommendations/${userId}/trace/${itemId}/export?algorithm=${algorithm}&k=20&format=${format}`,
+    `${browserApiUrl}/recommendations/${userId}/trace/${itemId}/export?algorithm=${algorithm}&k=20&format=${format}`,
   feedback: (userId: string, itemId: string, action: string) => api("/feedback", { method: "POST", body: JSON.stringify({ userId, itemId, action }) }),
   metrics: () => api<any>("/admin/metrics"),
   observability: () => api<any>("/admin/observability"),

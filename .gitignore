@@ -14,5 +14,5 @@ artifacts/models/*
 artifacts/reports/*
 artifacts/explanations/*
 artifacts/jobs/*
+artifacts/*.json
 !.gitkeep
-
