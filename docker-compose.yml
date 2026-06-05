@@ -1,0 +1,122 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: recolab
+      POSTGRES_USER: recolab
+      POSTGRES_PASSWORD: recolab
+    ports:
+      - "${POSTGRES_HOST_PORT:-5432}:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./infra/postgres/init.sql:/docker-entrypoint-initdb.d/00-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U recolab -d recolab"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  valkey:
+    image: valkey/valkey:8-alpine
+    ports:
+      - "${VALKEY_HOST_PORT:-6379}:6379"
+    volumes:
+      - valkey_data:/data
+    healthcheck:
+      test: ["CMD", "valkey-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  ollama:
+    image: ollama/ollama:latest
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    profiles: ["vector"]
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
+  minio:
+    image: minio/minio:latest
+    profiles: ["storage"]
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: recolab
+      MINIO_ROOT_PASSWORD: recolab-local-minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      NODE_ENV: development
+      PORT: 4000
+      DATABASE_URL: postgres://recolab:recolab@postgres:5432/recolab
+      VALKEY_URL: redis://valkey:6379
+      OLLAMA_URL: http://ollama:11434
+      OLLAMA_MODEL: llama3.2
+      OLLAMA_EMBEDDING_MODEL: nomic-embed-text
+      QDRANT_URL: http://qdrant:6333
+      QDRANT_COLLECTION: recolab_items
+      ARTIFACT_DIR: /workspace/artifacts
+      TRACE_ARCHIVE_DIR: /workspace/artifacts/trace-exports
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+      ollama:
+        condition: service_started
+    volumes:
+      - ./artifacts:/workspace/artifacts
+
+  worker:
+    build:
+      context: .
+      dockerfile: apps/worker/Dockerfile
+    environment:
+      DATABASE_URL: postgres://recolab:recolab@postgres:5432/recolab
+      VALKEY_URL: redis://valkey:6379
+      ARTIFACT_DIR: /workspace/artifacts
+      TRACE_ARCHIVE_DIR: /workspace/artifacts/trace-exports
+      MODEL_REFRESH_CRON: "*/30 * * * *"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      valkey:
+        condition: service_healthy
+    volumes:
+      - ./artifacts:/workspace/artifacts
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    environment:
+      NEXT_PUBLIC_API_URL: http://localhost:4000
+      INTERNAL_API_URL: http://api:4000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+
+volumes:
+  postgres_data:
+  valkey_data:
+  ollama_data:
+  qdrant_data:
+  minio_data:

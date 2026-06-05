@@ -1,0 +1,27 @@
+{
+  "name": "recolab",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Local AI-integrated recommendation platform with Next.js, Express, PostgreSQL, Valkey, Ollama, and Qdrant.",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev -w @recolab/api\" \"npm run dev -w @recolab/web\" \"npm run dev -w @recolab/worker\"",
+    "build": "npm run build -w @recolab/shared && npm run build -w @recolab/api && npm run build -w @recolab/worker && npm run build -w @recolab/web",
+    "test": "npm run test --workspaces --if-present",
+    "test:integration": "npm run test:integration -w @recolab/api",
+    "test:docker:integration": "node scripts/docker-integration.mjs",
+    "ci:verify": "npm run build && npm test",
+    "lint": "npm run lint -ws --if-present",
+    "db:migrate": "npm run db:migrate -w @recolab/api",
+    "db:seed": "npm run db:seed -w @recolab/api",
+    "dataset:movielens": "npm run dataset:movielens -w @recolab/api",
+    "batch:score": "npm run batch:score -w @recolab/api"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "typescript": "^5.5.4"
+  }
+}
