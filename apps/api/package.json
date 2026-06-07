@@ -25,7 +25,7 @@
     "batch:score": "tsx src/jobs/batchScore.ts"
   },
   "dependencies": {
-    "@recolab/shared": "0.1.0",
+    "@recolab/shared": "workspace:*",
     "bcryptjs": "^2.4.3",
     "bullmq": "^5.12.12",
     "cors": "^2.8.5",
